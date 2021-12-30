@@ -1,0 +1,25 @@
+{
+  "name": "youbash",
+  "version": "1.0.0",
+  "description": "these are necessary packages to run youbash",
+  "main": "server.js",
+  "dependencies": {
+    "bufferutil": "^4.0.5",
+    "socket.io": "^4.4.0",
+    "utf-8-validate": "^5.0.7"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/GeoYS/youbash.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/GeoYS/youbash/issues"
+  },
+  "homepage": "https://github.com/GeoYS/youbash#readme"
+}
