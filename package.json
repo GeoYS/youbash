@@ -5,6 +5,7 @@
   "main": "server.js",
   "dependencies": {
     "bufferutil": "^4.0.5",
+    "express": "^4.17.2",
     "socket.io": "^4.4.0",
     "utf-8-validate": "^5.0.7"
   },
