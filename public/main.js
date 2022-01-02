@@ -2,23 +2,20 @@
 
 (function() {
 
-  var testCounter = 0;
   var socket = io();
-  var testButton = document.getElementById('test-button');
-  var testText = document.getElementById('test-text');
+  var createBashButton = document.getElementById('create-button');
 
-  testButton.addEventListener('click', onTestToServer);
+  createBashButton.addEventListener('click', onCreateBashClick);
 
-  socket.on('testToClient', onTestToClient);
+  socket.on('bashCreated', onBashCreated);
 
-  function onTestToServer(){
-    console.log("testButton click")
-    socket.emit('testToServer', testCounter);
+  function onCreateBashClick(){
+    console.log("Create Bash clicked");
+    socket.emit('createBash');
   }
 
-  function onTestToClient(data){
-    console.log("testToClient received")
-    testCounter = data;
-    testText.innerHTML = "Server test counter: " + testCounter;
+  function onBashCreated(bashId){
+    console.log("bashCreated received");
+    window.location.href = "/bash/" + bashId.toString();
   }
 })();
