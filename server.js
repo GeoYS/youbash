@@ -86,15 +86,17 @@ function registerOnSetUrl(socket){
       console.log("setUrl error");
       return;
     }
-    bash.youtubeUrl = data.url;
-    io.emit('urlUpdated', data.url);
+
+    var youtubeId = data.url.split("=")[1];
+    bash.youtubeId = youtubeId;
+    io.emit('videoUpdated', youtubeId);
   });
 }
 
 function createBash() {
   var bash = {
     id: "",
-    youtubeUrl: "",
+    youtubeId: "",
     isPlaying: false, 
     seekTime: 0,
     numUsers: 0,    

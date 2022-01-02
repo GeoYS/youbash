@@ -11,7 +11,7 @@
 
   socket.emit("joinBash", bashId);
   socket.on('bashJoined', onBashJoined);
-  socket.on('urlUpdated', onUrlUpdated);
+  socket.on('videoUpdated', onVideoUpdated);
 
   submitButtom.addEventListener('click', onSubmitButtonClick);
 
@@ -24,9 +24,12 @@
     localBash = bash;
   }
 
-  function onUrlUpdated(url) {
-    console.log("Url updated " + url);
-    localBash.youtubeUrl = url;
+  function onVideoUpdated(youtubeId) {
+    console.log("Url updated " + youtubeId);
+    localBash.youtubeId = youtubeId;
+
+    var url = "http://www.youtube.com/embed/" + youtubeId;
+
     youtubeIframe.setAttribute("src", url);
   }
 
