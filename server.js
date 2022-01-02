@@ -28,6 +28,7 @@ function onConnection(socket){
   });
   registerOnCreateBash(socket);
   registerOnJoinBash(socket);
+  registerOnSetUrl(socket);
 }
 
 io.on('connection', onConnection);
@@ -67,7 +68,26 @@ function registerOnJoinBash(socket){
   socket.on('joinBash', (bashId) => {
     var bash = activeBashes.get(bashId);
     console.log("join bash received");
+
+    if (!bash) {
+      console.log("join bash error");
+      return;
+    }
+
     socket.emit('bashJoined', bash);
+  });
+}
+
+function registerOnSetUrl(socket){
+  socket.on('setUrl', (data) => {
+    var bash = activeBashes.get(data.bashId);
+    console.log("setUrl received");
+    if (!bash) {
+      console.log("setUrl error");
+      return;
+    }
+    bash.youtubeUrl = data.url;
+    io.emit('urlUpdated', data.url);
   });
 }
 

@@ -6,7 +6,7 @@
 
   var createBashButton = document.getElementById('create-button');
   var joinBashButton = document.getElementById('join-button');
-  var bashInput = document.getElementById('bash-id-input')
+  var bashInput = document.getElementById('bash-id-input');
 
   createBashButton.addEventListener('click', onCreateBashClick);
   joinBashButton.addEventListener('click', onJoinBashClick);
