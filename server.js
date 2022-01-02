@@ -27,6 +27,7 @@ function onConnection(socket){
     socket.emit('testToClient', data+1);
   });
   registerOnCreateBash(socket);
+  registerOnJoinBash(socket);
 }
 
 io.on('connection', onConnection);
@@ -41,7 +42,6 @@ server.listen(port, () => console.log(`app listening at http://localhost:${port}
 // Key is unique 5 character identifier
 // Value is the Bash object
 const activeBashes = new Map();
-var bashCount = 0;
 
 function createBashId() {
   const max = 1000000;  
@@ -60,6 +60,14 @@ function registerOnCreateBash(socket) {
     var bashId = createBash()
     console.log("createBash received");
     socket.emit('bashCreated', bashId)
+  });
+}
+
+function registerOnJoinBash(socket){
+  socket.on('joinBash', (bashId) => {
+    var bash = activeBashes.get(bashId);
+    console.log("join bash received");
+    socket.emit('bashJoined', bash);
   });
 }
 
