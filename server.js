@@ -29,6 +29,7 @@ function onConnection(socket){
   registerOnCreateBash(socket);
   registerOnJoinBash(socket);
   registerOnSetUrl(socket);
+  registerOnVideoPlaying(socket);
 }
 
 io.on('connection', onConnection);
@@ -54,6 +55,21 @@ function createBashId() {
   }
 
   return bashId;
+}
+
+function createBash() {
+  var bash = {
+    id: "",
+    youtubeId: "",
+    isPlaying: false, 
+    seekTime: 0,
+    numUsers: 0,    
+  };
+
+  bash.id = createBashId();
+  activeBashes.set(bash.id, bash);
+
+  return bash.id;
 }
 
 function registerOnCreateBash(socket) {
@@ -93,17 +109,12 @@ function registerOnSetUrl(socket){
   });
 }
 
-function createBash() {
-  var bash = {
-    id: "",
-    youtubeId: "",
-    isPlaying: false, 
-    seekTime: 0,
-    numUsers: 0,    
-  };
-
-  bash.id = createBashId();
-  activeBashes.set(bash.id, bash);
-
-  return bash.id;
+function registerOnVideoPlaying(socket){
+  socket.on('playVideo', (bashId) => {
+    var bash = activeBashes.get(bashId);
+    bash.isPlaying = true;
+    io.emit('videoPlaying')
+  });
 }
+
+
