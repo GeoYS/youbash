@@ -91,7 +91,11 @@ function onPlayerReady() {
     }
     console.log("Bash " + bash.id + " succesfully joined");
     localBash = bash;
-    player.cueVideoById(localBash.youtubeId);
+    if (localBash.youtubeId && localBash.isPlaying) {
+      player.loadVideoById(localBash.youtubeId, localBash.seekTime);
+    } else {
+      player.cueVideoById(localBash.youtubeId);
+    }
   }
 
   function onVideoUpdated(youtubeId) {
@@ -107,8 +111,8 @@ function onPlayerReady() {
     player.playVideo();
   }
 
-  function onVideoPaused() {
-    localBash.isPlaying = false;
+  function onVideoPaused(bash) {
+    localBash.isPlaying = bash.isPlaying;
     player.pauseVideo();
   }
 
