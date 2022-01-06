@@ -30,6 +30,7 @@ function onConnection(socket){
   registerOnJoinBash(socket);
   registerOnSetUrl(socket);
   registerOnVideoPlaying(socket);
+  registerOnVideoPaused(socket);
 }
 
 io.on('connection', onConnection);
@@ -110,10 +111,19 @@ function registerOnSetUrl(socket){
 }
 
 function registerOnVideoPlaying(socket){
-  socket.on('playVideo', (bashId) => {
-    var bash = activeBashes.get(bashId);
+  socket.on('playVideo', (data) => {
+    var bash = activeBashes.get(data.bashId);
     bash.isPlaying = true;
-    io.emit('videoPlaying')
+    bash.seekTime = data.seekTime;
+    io.emit('videoPlaying', bash)
+  });
+}
+
+function registerOnVideoPaused(socket){
+  socket.on('pauseVideo', (bashId) => {
+    var bash = activeBashes.get(bashId);
+    bash.isPlaying = false;
+    io.emit('videoPaused')
   });
 }
 
