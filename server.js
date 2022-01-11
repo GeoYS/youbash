@@ -21,11 +21,9 @@ app.get('/bash/:id', function(req , res){
 });
 
 function onConnection(socket){
+
   console.log("connection started")
-  socket.on('testToServer', (data) => {
-    console.log("testToServer received " + data);
-    socket.emit('testToClient', data+1);
-  });
+  registerOnDisconnecting(socket);
   registerOnCreateBash(socket);
   registerOnJoinBash(socket);
   registerOnSetUrl(socket);
@@ -76,9 +74,24 @@ function createBash() {
   return bash.id;
 }
 
+function registerOnDisconnecting(socket) {
+  socket.on("disconnecting", function () {
+    var rooms = socket.rooms;
+    console.log( 'disconnecting: ', rooms);
+    for (let room of rooms) {
+      let bashId = parseInt(room);
+      if (io.sockets.adapter.rooms.get(room).size == 1 && 
+          activeBashes.has(bashId)) {
+        activeBashes.delete(bashId);
+        activeStopWatches.delete(bashId);
+      }
+    }
+  });
+}
+
 function registerOnCreateBash(socket) {
   socket.on('createBash', () => {
-    var bashId = createBash()
+    var bashId = createBash();
     console.log("createBash received");
     socket.emit('bashCreated', bashId)
   });
@@ -94,6 +107,8 @@ function registerOnJoinBash(socket){
       console.log("join bash error");
       return;
     }
+
+    socket.join(bashId.toString());
 
     bash.seekTime += stopwatch.currentTime();
     stopwatch.reset();
@@ -115,7 +130,7 @@ function registerOnSetUrl(socket){
     var youtubeId = data.url.split("=")[1];
     bash.youtubeId = youtubeId;
     stopwatch.reset();
-    io.emit('videoUpdated', youtubeId);
+    io.to(bash.id.toString()).emit("videoUpdated", youtubeId);
   });
 }
 
@@ -126,7 +141,7 @@ function registerOnVideoPlaying(socket){
     bash.isPlaying = true;
     bash.seekTime = data.seekTime;
     stopwatch.start();
-    io.emit('videoPlaying', bash)
+    io.to(bash.id.toString()).emit("videoPlaying", bash);
   });
 }
 
@@ -135,8 +150,9 @@ function registerOnVideoPaused(socket){
     var bash = activeBashes.get(bashId);
     var stopwatch = activeStopWatches.get(bashId);
     bash.isPlaying = false;
+    bash.seekTime += stopwatch.currentTime();
     stopwatch.reset();
-    io.emit('videoPaused', bash)
+    io.to(bash.id.toString()).emit("videoPaused", bash);
   });
 }
 

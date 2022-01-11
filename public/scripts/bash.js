@@ -94,7 +94,7 @@ function onPlayerReady() {
     if (localBash.youtubeId && localBash.isPlaying) {
       player.loadVideoById(localBash.youtubeId, localBash.seekTime);
     } else {
-      player.cueVideoById(localBash.youtubeId);
+      player.cueVideoById(localBash.youtubeId, localBash.seekTime);
     }
   }
 
