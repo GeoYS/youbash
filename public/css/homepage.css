@@ -1,12 +1,29 @@
 #container {
   text-align: center;
+  width: 35%;
+  min-width: fit-content;
+  margin: auto;
+  border: 1px solid black;
+  height: 20em;
 }
 
-.button-container {
-  text-align: center;
+#bash-id-input{
+  visibility: hidden;
+  width: 0px;
+  height: 30px;
+  overflow: hidden;
+  transition: width 1s ease;
+  padding: 15px 0px 15px 25px;
+  font-size: 20px;
+}
+
+#bash-id-input.active {
+  visibility: visible;
+  width: 140px;
 }
 
 #join-button {
+  transition: width 1s ease;
   background-color: #499cd1;
   cursor: pointer;
   width: 250px;
@@ -15,6 +32,20 @@
   color: white;
   font-weight: bold;
   font-size: 20px;
+  margin-bottom: 10px;
+}
+
+#join-button.go-button {
+  width: 74px;
+}
+
+#error-message {
+  overflow: hidden;
+  height: 0;
+  transition: height 0.5s ease;
+  font-size: 13px;
+  margin-top: 0;
+  color: red;
 }
 
 #create-button {
@@ -26,4 +57,5 @@
   color: white;
   font-weight: bold;
   font-size: 20px;
+  margin-bottom: 10px;
 }

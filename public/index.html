@@ -9,15 +9,12 @@
   <body>
     <div id="container">
       <h1>YouBash</h1>
-      <div class="button-container">
-        <button id="create-button">Create a Bash</button>
-      </div>
-      <div class="button-container">
+      <button id="create-button">Create a Bash</button>
+      <div class="join-bash-container">
+        <input type="text" id="bash-id-input" placeholder="Enter Bash Id">
         <button id="join-button">Join a Bash</button>
       </div>
-      <input type="text" id="bash-id-input">
-        
-      
+      <p id='error-message'>Please enter a valid Bash Code!</p>
     </div>
     
     <script src="/socket.io/socket.io.js"></script>
