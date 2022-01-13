@@ -28,7 +28,9 @@ function onConnection(socket){
   registerOnJoinBash(socket);
   registerOnSetUrl(socket);
   registerOnVideoPlaying(socket);
+  registerOnVideoSeeked(socket);
   registerOnVideoPaused(socket);
+  registerOnSyncRequest(socket);
 }
 
 io.on('connection', onConnection);
@@ -141,7 +143,21 @@ function registerOnVideoPlaying(socket){
     bash.isPlaying = true;
     bash.seekTime = data.seekTime;
     stopwatch.start();
-    io.to(bash.id.toString()).emit("videoPlaying", bash);
+    socket.to(bash.id.toString()).emit("videoPlaying", bash);
+  });
+}
+
+function registerOnVideoSeeked(socket){
+  socket.on('seekVideo', (data) => {
+    console.log("seek video received");
+    var bash = activeBashes.get(data.bashId);
+    var stopwatch = activeStopWatches.get(data.bashId);
+    bash.seekTime = data.seekTime;
+    if (bash.isPlaying) {
+      stopwatch.reset();
+      stopwatch.start();
+    }
+    socket.to(bash.id.toString()).emit("videoSeek", bash);
   });
 }
 
@@ -152,7 +168,18 @@ function registerOnVideoPaused(socket){
     bash.isPlaying = false;
     bash.seekTime += stopwatch.currentTime();
     stopwatch.reset();
-    io.to(bash.id.toString()).emit("videoPaused", bash);
+    socket.to(bash.id.toString()).emit("videoPaused", bash);
+  });
+}
+
+function registerOnSyncRequest(socket){
+  socket.on('syncRequest', (bashId) => {
+    var bash = activeBashes.get(bashId);
+    var stopwatch = activeStopWatches.get(bashId);
+    bash.seekTime += stopwatch.currentTime();
+    stopwatch.reset();
+    stopwatch.start();
+    socket.emit("videoSeek", bash);
   });
 }
 

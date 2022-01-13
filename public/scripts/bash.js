@@ -29,6 +29,12 @@ function onYouTubeIframeAPIReady() {
 
 function onPlayerReady() {
 
+  // Higher priority flags are listed first
+  var playerFlags = {
+    syncOnNextPlay: false, // should set to true before first video play event
+    ignoreNextPlayingEvent: false, // should set to true before any seekTo
+  };
+
   // add event listeners to player
   player.addEventListener('onStateChange', onPlayerStateChange);
 
@@ -48,11 +54,40 @@ function onPlayerReady() {
     */
     switch(event.data) {
       case YT.PlayerState.PLAYING:
-        if (!localBash.isPlaying)
+        /*
+        Handle edge case flags with priority.
+        For flag priority, check the playerFlags declaration.
+        */
+        if (playerFlags.syncOnNextPlay) {
+          playerFlags.syncOnNextPlay = false;
+          playerFlags.ignoreNextPlayingEvent = false;
+          if (localBash.isPlaying) {
+            console.log("sync on next play");
+            socket.emit("syncRequest", bashId);
+            return;
+          }
+        }
+        if (playerFlags.ignoreNextPlayingEvent) {
+          playerFlags.ignoreNextPlayingEvent = false;
+          console.log("ignore playing event");
+          return;
+        }
+
+        /*
+        Handle normal logic.
+        */
+        if (!localBash.isPlaying) {
+          console.log("emit play video");
+          localBash.isPlaying = true;
           socket.emit('playVideo', {'bashId': bashId, 'seekTime': player.getCurrentTime()});
+        } else {
+          console.log("emit seek video");
+          socket.emit('seekVideo', {'bashId': bashId, 'seekTime': player.getCurrentTime()});
+        }
         break;
       case YT.PlayerState.PAUSED:
         if (localBash.isPlaying)
+          localBash.isPlaying = false;
           socket.emit('pauseVideo', bashId);
         break;
       default:
@@ -81,6 +116,7 @@ function onPlayerReady() {
   socket.on('videoUpdated', onVideoUpdated);
   socket.on('videoPlaying', onVideoPlaying);
   socket.on('videoPaused', onVideoPaused);
+  socket.on('videoSeek', onVideoSeek);
 
   submitButtom.addEventListener('click', onSubmitButtonClick);
 
@@ -91,9 +127,12 @@ function onPlayerReady() {
     }
     console.log("Bash " + bash.id + " succesfully joined");
     localBash = bash;
+    playerFlags.syncOnNextPlay = true;
     if (localBash.youtubeId && localBash.isPlaying) {
+      console.log("video loaded and started");
       player.loadVideoById(localBash.youtubeId, localBash.seekTime);
     } else {
+      console.log("video cued");
       player.cueVideoById(localBash.youtubeId, localBash.seekTime);
     }
   }
@@ -107,12 +146,26 @@ function onPlayerReady() {
   function onVideoPlaying(bash) {
     localBash.isPlaying = bash.isPlaying;
     localBash.seekTime = bash.seekTime;
+    playerFlags.ignoreNextPlayingEvent = true;
     player.seekTo(bash.seekTime);
+    console.log ("video play received");
     player.playVideo();
+  }
+
+  function onVideoSeek(bash) {
+    localBash.isPlaying = bash.isPlaying;
+    console.log("video seek received");
+    playerFlags.ignoreNextPlayingEvent = true;
+    player.seekTo(bash.seekTime);
+
+    if (!localBash.isPlaying) {
+      player.pauseVideo();
+    }
   }
 
   function onVideoPaused(bash) {
     localBash.isPlaying = bash.isPlaying;
+    console.log("video paused received");
     player.pauseVideo();
   }
 
