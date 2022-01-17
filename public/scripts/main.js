@@ -27,30 +27,19 @@
   }
 
   function onJoinBashClick() {
-    if (!goButtonVisible) {
-      goButtonVisible = true;
-      bashInput.classList.add('active');
-      joinBashButton.classList.add('go-button');
-      joinBashButton.innerHTML = 'GO';
+    var bashId = parseInt(bashInput.value);
+    if (bashId != null && !Number.isNaN(bashId)) {
+      console.log("Joining valid bash..");
+      window.location.href = "/bash/" + bashId.toString();
     }
+    // handling invalid bash ID
     else {
-      var bashId = parseInt(bashInput.value);
-      if (bashId != null && !Number.isNaN(bashId)) {
-        console.log("Joining valid bash..");
-        window.location.href = "/bash/" + bashId.toString();
-      }
-      // handling invalid bash ID
-      else {
-        bashInput.style.border = '2px solid red';
-        errorMessage.style.height = '20px';
-        setTimeout(() => {
-          bashInput.style.border = '';
-          errorMessage.style.height = '0px';
-        }, 2000);
-      }
+      bashInput.style.border = '2px solid red';
+      errorMessage.style.height = '20px';
+      setTimeout(() => {
+        bashInput.style.border = '';
+        errorMessage.style.height = '0px';
+      }, 2000);
     }
-    
-
-    
   }
 })();
