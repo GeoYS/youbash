@@ -17,7 +17,13 @@ app.get('/', (req, res) => {
 });
 
 app.get('/bash/:id', function(req , res){
-  res.sendFile(__dirname + '/public/bash.html');
+  var bashId = parseInt(req.params.id);
+  console.log("express join bash: " + bashId);
+  if (activeBashes.has(bashId)) {
+    res.sendFile(__dirname + '/public/bash.html');
+  } else {
+    res.redirect('/?failed=1');
+  }
 });
 
 function onConnection(socket){
