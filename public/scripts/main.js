@@ -23,19 +23,16 @@
   socket.on('bashCreated', onBashCreated);
 
   function onCreateBashClick(){
-    console.log("Create Bash clicked");
     socket.emit('createBash');
   }
 
   function onBashCreated(bashId){
-    console.log("bashCreated received");
     window.location.href = "/bash/" + bashId.toString();
   }
 
   function onJoinBashClick() {
     var bashId = parseInt(bashInput.value);
     if (bashId != null && !Number.isNaN(bashId)) {
-      console.log("Joining valid bash..");
       window.location.href = "/bash/" + bashId.toString();
     }
     // handling invalid bash ID
