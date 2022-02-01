@@ -90,9 +90,10 @@ function onPlayerReady() {
         }
         break;
       case YT.PlayerState.PAUSED:
-        if (localBash.isPlaying)
+        if (localBash.isPlaying) {
           localBash.isPlaying = false;
           socket.emit('pauseVideo', bashId);
+        }
         break;
       default:
         break;
