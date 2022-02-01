@@ -163,10 +163,11 @@ function registerOnJoinBash(socket){
     }
 
     socket.join(bashId.toString());
-
-    bash.seekTime += stopwatch.currentTime();
-    stopwatch.reset();
-    stopwatch.start();
+    if (bash.isPlaying) {
+      bash.seekTime += stopwatch.currentTime();
+      stopwatch.reset();
+      stopwatch.start();
+    }
     socket.emit('bashJoined', bash);
   });
 }
