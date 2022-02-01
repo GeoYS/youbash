@@ -19,7 +19,8 @@ function onYouTubeIframeAPIReady() {
     width: '800',
     videoId: '',
     playerVars: {
-      'playsinline': 1
+      'playsinline': 1,
+      'mute' : 1
     },
     events: {
       'onReady': onPlayerReady
@@ -109,7 +110,7 @@ function onPlayerReady() {
     youtubeId: "",
     isPlaying: false, 
     seekTime: 0,
-    numUsers: 0,    
+    numUsers: 0,
   };
   var submitButtom = document.getElementById('submit-button');
   var urlBar = document.getElementById('url-bar');
