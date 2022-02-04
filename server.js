@@ -37,6 +37,7 @@ function onConnection(socket){
   to only be able to create one bash.
   */
   socket.hasCreatedBash = false;
+  registerOnSetNickname(socket);
   registerOnDisconnecting(socket);
   registerOnCreateBash(socket);
   registerOnJoinBash(socket);
@@ -79,7 +80,8 @@ function createBash() {
     youtubeId: "",
     isPlaying: false, 
     seekTime: 0,
-    numUsers: 0
+    numUsers: 0,
+    users: {}
   };
   var elapsedTimeStopWatch = createStopWatch();
 
@@ -118,6 +120,31 @@ function validateYoutubeUrl(url) {
       return url.match(p)[1];
   }
   return false;
+}
+
+function registerOnSetNickname(socket) {
+  socket.on('setNickname', (data) => {
+    var rawNickname = data.nickname;
+    var bash = activeBashes.get(data.bashId);
+    var alphaNumericChars = /^[a-z0-9]+$/i;
+    var hasErrors = 0;
+    
+    if (!rawNickname || !rawNickname.match(alphaNumericChars)) {
+      hasErrors = 1;
+      console.log("Invalid username");
+    }
+    else if (bash.users[rawNickname]) {
+      hasErrors = 2;
+      console.log("Username already exists")
+    }
+    else {
+      socket.data.nickname = rawNickname;
+      bash.users[rawNickname] = true;
+      hasErrors = 0;
+      console.log(rawNickname + " joined bash")
+    }
+    socket.emit("setNicknameResponse", hasErrors);
+  })
 }
 
 function registerOnDisconnecting(socket) {
