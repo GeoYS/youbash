@@ -1,4 +1,7 @@
 'use strict';
+var socket = io();
+var urlPath = window.location.pathname.split('/');
+var bashId = parseInt(urlPath[2]);
 
 //=====================================================
 //============ YouTube Player Creation Code ===========
@@ -27,6 +30,44 @@ function onYouTubeIframeAPIReady() {
     }
   });
 }
+
+(function() {
+  var nicknameButton = document.getElementById('nickname-button');
+  var nicknameInput = document.getElementById('nickname-input');
+  var nicknameModal = document.getElementById('nickname-modal');
+  var errorMessage = document.getElementById('error-message')
+
+  nicknameButton.addEventListener('click', onSetNickname);
+
+  function onSetNickname() {
+    var nickname = nicknameInput.value;
+    socket.emit('setNickname', {nickname: nickname, bashId: bashId})
+
+    //hasErrors: 1 - invalid username, 2 - username taken
+    socket.on('setNicknameResponse', (hasErrors) => {
+      if (!hasErrors) {
+        nicknameModal.classList.add("hide-modal");
+      }
+      else if (hasErrors == 1) {
+        showNicknameErrors("Please enter a valid nickname!");
+      }
+      else if (hasErrors == 2) {
+        showNicknameErrors("Nickname is already in use! Please enter a different one");
+      }
+    })
+  }
+
+  function showNicknameErrors(message) {
+    nicknameInput.style.border = '2px solid red';
+    errorMessage.innerText = message;
+    errorMessage.style.height = '20px';
+    setTimeout(() => {
+      nicknameInput.style.border = '';
+      errorMessage.style.height = '0px';
+    }, 2000);
+  }
+
+})();
 
 function onPlayerReady() {
 
@@ -103,9 +144,6 @@ function onPlayerReady() {
   //==========================================
   //================ Bash Code ===============
   //==========================================
-  var socket = io();
-  var urlPath = window.location.pathname.split('/');
-  var bashId = parseInt(urlPath[2]);
   var localBash = {
     id: "",
     youtubeId: "",
@@ -115,7 +153,7 @@ function onPlayerReady() {
   };
   var submitButtom = document.getElementById('submit-button');
   var urlBar = document.getElementById('url-bar');
-
+  
   socket.emit("joinBash", bashId);
   socket.on('bashJoined', onBashJoined);
   socket.on('videoUpdated', onVideoUpdated);
