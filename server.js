@@ -330,12 +330,6 @@ const BashStatusEvents = {
 status changes, such as when user pauses or seeks the video.
 */
 function BashStatusProcessor(bash) {
-  /* Bash must be paused for at least the threshold time before 
-  notifying the room that bash status has been updated to "paused".
-  This it to handle the Youtube player's mouse seek sequence.
-  */
-  const PAUSE_THRESHOLD = 1000; // milliseconds
-
   let currentSeekTime = bash.seekTime;
 
   /* Call this after bash has been updated */
@@ -348,25 +342,17 @@ function BashStatusProcessor(bash) {
     };
     switch(userEvent) {
       case BashStatusEvents.play:
-        if (currentSeekTime != bash.seekTime) {
+        if (Math.round(currentSeekTime) != Math.round(bash.seekTime)) {
           statusData.event = BashStatusEvents.seek;
         }
       case BashStatusEvents.seek:
         statusData.data.seekTime = bash.seekTime;
+      case BashStatusEvents.pause:
       case BashStatusEvents.setUrl:
-        currentSeekTime = bash.seekTime; // Should be 0!
+        currentSeekTime = bash.seekTime; // Should be 0 for setUrl!
       case BashStatusEvents.join:
       case BashStatusEvents.leave:
         io.to(bash.id.toString()).emit(statusUpdateEvent, statusData);
-        break;
-      case BashStatusEvents.pause:
-        currentSeekTime = bash.seekTime;
-        setTimeout(() => {
-          if (!bash.isPlaying) {
-            io.to(bash.id.toString()).emit(statusUpdateEvent, statusData);
-          }          
-        }, PAUSE_THRESHOLD);
-        break;
       default:
         break;
     }

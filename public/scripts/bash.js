@@ -235,16 +235,16 @@ function onPlayerReady() {
     
     switch(statusData.event) {
       case "join":
-        statusText += " has joined the bash.";
+        statusText += " joined the bash.";
         break;
       case "leave":
-        statusText += " has left the bash.";
+        statusText += " left the bash.";
         break;
       case "play":
-        statusText += " pressed play.";
+        statusText += " played the video.";
         break;
       case "pause":
-        statusText += " pressed pause.";
+        statusText += " paused the video.";
         break;
       case "setUrl":
         statusText += " changed the video.";
