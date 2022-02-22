@@ -18,8 +18,8 @@ var tag = document.createElement('script');
 
 function onYouTubeIframeAPIReady() {
   player = new YT.Player('youtube-iframe', {
-    height: '450',
-    width: '800',
+    height: '513',
+    width: '912',
     videoId: '',
     playerVars: {
       'playsinline': 1,
