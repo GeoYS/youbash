@@ -8,12 +8,12 @@
 
 #url-bar-container {
   margin:auto;
-  width: 800px;
+  width: 1200px;
   padding-bottom: 10px;
 }
 
 #url-bar {
-  width: 75%;
+  width: 75.5%;
   height: 30px;
   font-size: 20px;
 }
@@ -29,16 +29,54 @@
   font-size: 20px;
 }
 
+#content-container {
+  width: 1200px;
+  margin: auto;
+}
+
 #video-container {
+  display: inline-block;
   width: fit-content;
   height: fit-content;
   margin: auto;
 }
 
 #chat-panel {
-  height: 400px;
-  width: 400px;
+  display: inline-block;
+  vertical-align: top;
+  height: 511px;
+  width: 282px;
   border: 1px solid black;
+}
+
+#message-container {
+  height: 90%;
+  border-bottom: 1px solid black;
+}
+
+#message-area {
+  height: 9%;
+}
+
+#message-input {
+  width: 75%;
+  height: 85%;
+  font-size: 16px;
+  border: none;
+}
+
+#message-input:focus-visible {
+  outline: none;
+}
+
+#send-button {
+  width: 20%;
+  height: 70%;
+  background-color: #38D5DF;
+  color: white;
+  border: none;
+  font-size: 18px;
+  margin-top: 10px;
 }
 
 .modal {
