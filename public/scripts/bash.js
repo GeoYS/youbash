@@ -2,6 +2,7 @@
 var socket = io();
 var urlPath = window.location.pathname.split('/');
 var bashId = parseInt(urlPath[2]);
+var nickname = "";
 
 // Helper
 function toTimestampString(seconds) {
@@ -55,18 +56,36 @@ function onYouTubeIframeAPIReady() {
   var nicknameButton = document.getElementById('nickname-button');
   var nicknameInput = document.getElementById('nickname-input');
   var nicknameModal = document.getElementById('nickname-modal');
-  var errorMessage = document.getElementById('error-message')
+  var errorMessage = document.getElementById('error-message');
+
+  var sendMessage = document.getElementById('send-button');
+  var messageInput = document.getElementById('message-input');
+  var messageContainer = document.getElementById('message-container');
 
   nicknameButton.addEventListener('click', onSetNickname);
+  nicknameInput.addEventListener('keyup', (e) => {
+    if (e.key === "Enter") {
+      onSetNickname();
+    }
+  });
+  sendMessage.addEventListener('click', onSendMessage);
+  messageInput.addEventListener('keyup', (e) => {
+    if (e.key === "Enter") {
+      onSendMessage();
+    }
+  });
+
+  socket.on('messageReceived', onMessageReceived);
 
   function onSetNickname() {
-    var nickname = nicknameInput.value;
-    socket.emit('setNickname', {nickname: nickname, bashId: bashId})
+    var inputtedNickname = nicknameInput.value;
+    socket.emit('setNickname', {nickname: inputtedNickname, bashId: bashId})
 
     //hasErrors: 1 - invalid username, 2 - username taken
     socket.on('setNicknameResponse', (hasErrors) => {
       if (!hasErrors) {
         nicknameModal.classList.add("hide-modal");
+        nickname = inputtedNickname;
       }
       else if (hasErrors == 1) {
         showNicknameErrors("Please enter a valid nickname!");
@@ -87,6 +106,36 @@ function onYouTubeIframeAPIReady() {
     }, 2000);
   }
 
+  function onSendMessage() {
+    let message = messageInput.value;
+    if (!message) return;
+
+    socket.emit('sendMessage', {message: message, bashId: bashId})
+
+    let messageElement = document.createElement('p');
+    messageElement.classList.add('message-text');
+    
+    let nicknameElement = document.createElement('span');
+    nicknameElement.classList.add('own-nickname');
+    nicknameElement.textContent = nickname;
+
+    messageElement.appendChild(nicknameElement);
+    messageElement.append(": " + message);
+
+    messageInput.value = "";
+    messageContainer.appendChild(messageElement);
+    messageContainer.scrollTop = messageContainer.scrollHeight;
+  }
+
+  function onMessageReceived(data) {
+    let messageElement = document.createElement('p');
+    messageElement.classList.add('message-text');
+    messageElement.textContent = data.user + ": " + data.message;
+
+    messageInput.value = "";
+    messageContainer.appendChild(messageElement);
+    messageContainer.scrollTop = messageContainer.scrollHeight;
+  }
 })();
 
 function onPlayerReady() {
@@ -184,6 +233,11 @@ function onPlayerReady() {
   socket.on('statusUpdate', onStatusUpdate);
 
   submitButtom.addEventListener('click', onSubmitButtonClick);
+  urlBar.addEventListener('keyup', (e) => {
+    if (e.key === "Enter") {
+      onSubmitButtonClick();
+    }
+  });
 
   function onBashJoined(bash) {
     if (!bash) {
@@ -261,6 +315,7 @@ function onPlayerReady() {
     statusMessage.appendChild(statusTextElement);
 
     messageContainer.appendChild(statusMessage);
+    messageContainer.scrollTop = messageContainer.scrollHeight;
   }
 
   function onSubmitButtonClick() {

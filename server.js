@@ -38,6 +38,7 @@ function onConnection(socket){
   */
   socket.hasCreatedBash = false;
   registerOnSetNickname(socket);
+  registerOnMessageSent(socket);
   registerOnDisconnecting(socket);
   registerOnCreateBash(socket);
   registerOnJoinBash(socket);
@@ -149,6 +150,20 @@ function registerOnSetNickname(socket) {
       bashStatusProcessor.process(socket, BashStatusEvents.join);
     }
     socket.emit("setNicknameResponse", hasErrors);
+  })
+}
+
+function registerOnMessageSent(socket) {
+  socket.on('sendMessage', (data) => {
+    let bash = activeBashes.get(data.bashId)
+    let message = data.message;
+    let user = socket.data.nickname;
+
+    if (!message) {
+      return;
+    }
+
+    socket.to(bash.id.toString()).emit("messageReceived", {message:message, user:user})
   })
 }
 
