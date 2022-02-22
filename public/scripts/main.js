@@ -19,6 +19,11 @@
 
   createBashButton.addEventListener('click', onCreateBashClick);
   joinBashButton.addEventListener('click', onJoinBashClick);
+  bashInput.addEventListener('keyup', (e) => {
+    if (e.key === "Enter") {
+      onJoinBashClick();
+    }
+  });
 
   socket.on('bashCreated', onBashCreated);
 

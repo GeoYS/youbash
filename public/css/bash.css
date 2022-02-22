@@ -52,9 +52,24 @@
 #message-container {
   height: 90%;
   border-bottom: 1px solid black;
+  overflow-y: auto;
 }
 
-#message-area {
+p.status-message {
+  font-style: italic;
+  margin-left: 5px;
+}
+
+span.own-nickname {
+  color: #38D5DF
+}
+
+p.message-text {
+  margin-left: 5px;
+  overflow-wrap: break-word;
+}
+
+#message-input-area {
   height: 9%;
 }
 
@@ -103,6 +118,12 @@
   border-radius: 0.5rem;
 }
 
+.modal-header {
+  font-weight: normal;
+  font-size: 25px;
+  margin: 5px;
+}
+
 #nickname-button {
   background-color: #38D5DF;
   cursor: pointer;
@@ -121,7 +142,7 @@
   height: 30px;
   overflow: hidden;
   padding: 15px 0px 15px 25px;
-  margin-top: 20px;
+  margin-top: 10px;
   font-size: 20px;
 }
 
@@ -139,8 +160,4 @@
   visibility: hidden;
   transform: scale(1.1);
   transition: visibility 0s linear 0s, opacity 0.25s 0s, transform 0.25s;
-}
-
-p.status-message {
-  font-style: italic;
 }
