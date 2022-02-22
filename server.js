@@ -61,6 +61,7 @@ server.listen(port, () => console.log(`app listening at http://localhost:${port}
 // Value is the Bash object
 const activeBashes = new Map();
 const activeStopWatches = new Map();
+const activeStatusProcessors = new Map();
 
 function createBashId() {
   const max = 1000000;  
@@ -84,10 +85,12 @@ function createBash() {
     users: {}
   };
   var elapsedTimeStopWatch = createStopWatch();
+  var bashStatusProcessor = new BashStatusProcessor(bash);
 
   bash.id = createBashId();
   activeBashes.set(bash.id, bash);
   activeStopWatches.set(bash.id, elapsedTimeStopWatch);
+  activeStatusProcessors.set(bash.id, bashStatusProcessor);
 
   return bash.id;
 }
@@ -126,6 +129,7 @@ function registerOnSetNickname(socket) {
   socket.on('setNickname', (data) => {
     var rawNickname = data.nickname;
     var bash = activeBashes.get(data.bashId);
+    let bashStatusProcessor = activeStatusProcessors.get(data.bashId);
     var alphaNumericChars = /^[a-z0-9]+$/i;
     var hasErrors = 0;
     
@@ -142,6 +146,7 @@ function registerOnSetNickname(socket) {
       bash.users[rawNickname] = true;
       hasErrors = 0;
       console.log(rawNickname + " joined bash")
+      bashStatusProcessor.process(socket, BashStatusEvents.join);
     }
     socket.emit("setNicknameResponse", hasErrors);
   })
@@ -155,7 +160,9 @@ function registerOnDisconnecting(socket) {
       let bashId = parseInt(room);
       if (activeBashes.has(bashId)) {
         let bash = activeBashes.get(bashId);
+        let statusProcessor = activeStatusProcessors.get(bashId);
         bash.users[socket.data.nickname] = false;
+        statusProcessor.process(socket, BashStatusEvents.leave);
 
         if (io.sockets.adapter.rooms.get(room).size == 1) {
           activeBashes.delete(bashId);
@@ -214,6 +221,7 @@ function registerOnSetUrl(socket){
 
     var bash = activeBashes.get(bashId);
     var stopwatch = activeStopWatches.get(data.bashId);
+    var statusProcessor = activeStatusProcessors.get(bashId);
 
     if (!bash) {
       console.log("setUrl error");
@@ -224,8 +232,10 @@ function registerOnSetUrl(socket){
 
     console.log("setUrl received");
     bash.youtubeId = youtubeId;
+    bash.seekTime = 0;
     stopwatch.reset();
     io.to(bash.id.toString()).emit("videoUpdated", youtubeId);
+    statusProcessor.process(socket, BashStatusEvents.setUrl);
   });
 }
 
@@ -234,6 +244,7 @@ function registerOnVideoPlaying(socket){
     var bashId = sanitizeBashId(data.bashId, 'playVideo');
     var bash = activeBashes.get(bashId);
     var stopwatch = activeStopWatches.get(bashId);
+    var statusProcessor = activeStatusProcessors.get(bashId);
     var seekTime = sanitizeSeekTime(data.seekTime, 'playVideo');
 
     if (!bash) {
@@ -245,6 +256,7 @@ function registerOnVideoPlaying(socket){
     bash.seekTime = seekTime;
     stopwatch.start();
     socket.to(bash.id.toString()).emit("videoPlaying", bash);
+    statusProcessor.process(socket, BashStatusEvents.play);
   });
 }
 
@@ -253,6 +265,7 @@ function registerOnVideoSeeked(socket){
     var bashId = sanitizeBashId(data.bashId, 'seekVideo');
     var bash = activeBashes.get(bashId);
     var stopwatch = activeStopWatches.get(bashId);
+    var statusProcessor = activeStatusProcessors.get(bashId);
     var seekTime = sanitizeSeekTime(data.seekTime, 'seekVideo');
 
     console.log("seek video received");
@@ -268,6 +281,7 @@ function registerOnVideoSeeked(socket){
       stopwatch.start();
     }
     socket.to(bash.id.toString()).emit("videoSeek", bash);
+    statusProcessor.process(socket, BashStatusEvents.seek);
   });
 }
 
@@ -276,6 +290,7 @@ function registerOnVideoPaused(socket){
     var bashId = sanitizeBashId(rawBashId, 'pauseVideo');
     var bash = activeBashes.get(bashId);
     var stopwatch = activeStopWatches.get(bashId);
+    var statusProcessor = activeStatusProcessors.get(bashId);
 
     if (!bash) {
       console.log("pauseVideo: bash not found");
@@ -286,6 +301,7 @@ function registerOnVideoPaused(socket){
     bash.seekTime += stopwatch.currentTime();
     stopwatch.reset();
     socket.to(bash.id.toString()).emit("videoPaused", bash);
+    statusProcessor.process(socket, BashStatusEvents.pause);
   });
 }
 
@@ -299,6 +315,62 @@ function registerOnSyncRequest(socket){
     stopwatch.start();
     socket.emit("videoSeek", bash);
   });
+}
+
+const BashStatusEvents = {
+  play: "play",
+  pause: "pause",
+  seek: "seek",
+  join: "join",
+  leave: "leave",
+  setUrl: "setUrl",
+}
+
+/* BashStatusProcessor handles notifying the users when bash 
+status changes, such as when user pauses or seeks the video.
+*/
+function BashStatusProcessor(bash) {
+  /* Bash must be paused for at least the threshold time before 
+  notifying the room that bash status has been updated to "paused".
+  This it to handle the Youtube player's mouse seek sequence.
+  */
+  const PAUSE_THRESHOLD = 1000; // milliseconds
+
+  let currentSeekTime = bash.seekTime;
+
+  /* Call this after bash has been updated */
+  this.process = function(userSocket, userEvent) {
+    const statusUpdateEvent = "statusUpdate";
+    let statusData = {
+      user: userSocket.data.nickname,
+      event: userEvent,
+      data: {},
+    };
+    switch(userEvent) {
+      case BashStatusEvents.play:
+        if (currentSeekTime != bash.seekTime) {
+          statusData.event = BashStatusEvents.seek;
+        }
+      case BashStatusEvents.seek:
+        statusData.data.seekTime = bash.seekTime;
+      case BashStatusEvents.setUrl:
+        currentSeekTime = bash.seekTime; // Should be 0!
+      case BashStatusEvents.join:
+      case BashStatusEvents.leave:
+        io.to(bash.id.toString()).emit(statusUpdateEvent, statusData);
+        break;
+      case BashStatusEvents.pause:
+        currentSeekTime = bash.seekTime;
+        setTimeout(() => {
+          if (!bash.isPlaying) {
+            io.to(bash.id.toString()).emit(statusUpdateEvent, statusData);
+          }          
+        }, PAUSE_THRESHOLD);
+        break;
+      default:
+        break;
+    }
+  };
 }
 
 function createStopWatch() {

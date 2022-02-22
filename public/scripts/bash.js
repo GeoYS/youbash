@@ -3,6 +3,26 @@ var socket = io();
 var urlPath = window.location.pathname.split('/');
 var bashId = parseInt(urlPath[2]);
 
+// Helper
+function toTimestampString(seconds) {
+  var hours   = Math.floor(seconds / 3600);
+  var minutes = Math.floor((seconds - (hours * 3600)) / 60);
+  var seconds = Math.round(seconds - (hours * 3600) - (minutes * 60));
+
+  if (minutes < 10 && hours) {
+    minutes = "0" + minutes;
+  }
+  if (seconds < 10) {
+    seconds = "0" + seconds;
+  }
+
+  if (hours) {
+    return hours + ':' + minutes + ':' + seconds;
+  }
+
+  return minutes + ':' + seconds;
+}
+
 //=====================================================
 //============ YouTube Player Creation Code ===========
 //=====================================================
@@ -153,6 +173,7 @@ function onPlayerReady() {
   };
   var submitButtom = document.getElementById('submit-button');
   var urlBar = document.getElementById('url-bar');
+  var messageContainer = document.getElementById('message-container');
   
   socket.emit("joinBash", bashId);
   socket.on('bashJoined', onBashJoined);
@@ -160,6 +181,7 @@ function onPlayerReady() {
   socket.on('videoPlaying', onVideoPlaying);
   socket.on('videoPaused', onVideoPaused);
   socket.on('videoSeek', onVideoSeek);
+  socket.on('statusUpdate', onStatusUpdate);
 
   submitButtom.addEventListener('click', onSubmitButtonClick);
 
@@ -203,6 +225,42 @@ function onPlayerReady() {
   function onVideoPaused(bash) {
     localBash.isPlaying = bash.isPlaying;
     player.pauseVideo();
+  }
+
+  function onStatusUpdate(statusData) {
+    let statusMessage = document.createElement("p");
+    let statusText = statusData.user;
+
+    statusMessage.classList.add('status-message');
+    
+    switch(statusData.event) {
+      case "join":
+        statusText += " has joined the bash.";
+        break;
+      case "leave":
+        statusText += " has left the bash.";
+        break;
+      case "play":
+        statusText += " pressed play.";
+        break;
+      case "pause":
+        statusText += " pressed pause.";
+        break;
+      case "setUrl":
+        statusText += " changed the video.";
+        break;
+      case "seek":
+        statusText += " seeked the video to " + toTimestampString(statusData.data.seekTime) + ".";
+        break;
+      default:
+        break;
+    }
+
+    const statusTextElement = document.createTextNode(statusText);
+
+    statusMessage.appendChild(statusTextElement);
+
+    messageContainer.appendChild(statusMessage);
   }
 
   function onSubmitButtonClick() {
