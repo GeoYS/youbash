@@ -153,10 +153,14 @@ function registerOnDisconnecting(socket) {
     console.log( 'disconnecting: ', rooms);
     for (let room of rooms) {
       let bashId = parseInt(room);
-      if (io.sockets.adapter.rooms.get(room).size == 1 && 
-          activeBashes.has(bashId)) {
-        activeBashes.delete(bashId);
-        activeStopWatches.delete(bashId);
+      if (activeBashes.has(bashId)) {
+        let bash = activeBashes.get(bashId);
+        bash.users[socket.data.nickname] = false;
+
+        if (io.sockets.adapter.rooms.get(room).size == 1) {
+          activeBashes.delete(bashId);
+          activeStopWatches.delete(bashId);
+        }
       }
     }
   });
