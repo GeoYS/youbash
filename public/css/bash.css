@@ -35,6 +35,12 @@
   margin: auto;
 }
 
+#chat-panel {
+  height: 400px;
+  width: 400px;
+  border: 1px solid black;
+}
+
 .modal {
   position: fixed;
   left: 0;
