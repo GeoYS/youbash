@@ -38,7 +38,7 @@ function onConnection(socket){
   */
   socket.hasCreatedBash = false;
   registerOnSetNickname(socket);
-  registerOnMessageSent(socket);
+  registerOnSendMessage(socket);
   registerOnDisconnecting(socket);
   registerOnCreateBash(socket);
   registerOnJoinBash(socket);
@@ -153,7 +153,7 @@ function registerOnSetNickname(socket) {
   })
 }
 
-function registerOnMessageSent(socket) {
+function registerOnSendMessage(socket) {
   socket.on('sendMessage', (data) => {
     let bash = activeBashes.get(data.bashId)
     let message = data.message;
