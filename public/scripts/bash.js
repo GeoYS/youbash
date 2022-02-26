@@ -144,10 +144,10 @@ function onYouTubeIframeAPIReady() {
 
   function onMessageReceived(data) {
     let messageElement = document.createElement('p');
+    
     messageElement.classList.add('message-text');
     messageElement.textContent = data.user + ": " + data.message;
 
-    messageInput.value = "";
     messageContainer.appendChild(messageElement);
     messageContainer.scrollTop = messageContainer.scrollHeight;
   }
