@@ -1,27 +1,36 @@
+html, body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  font-family: Helvetica;
+}
+
 #logo {
-  width: 250px;
+  width: 5vw;
   display: block;
-  margin-left: auto;
+  margin-left: 11%;
   margin-right: auto;
   margin-bottom: 20px;
+  margin-top: 15px;
 }
 
 #url-bar-container {
   margin:auto;
-  width: 1200px;
+  width: 77vw;
   padding-bottom: 10px;
 }
 
 #url-bar {
-  width: 75.5%;
-  height: 30px;
+  width: 74%;
+  height: 35px;
+  box-sizing: border-box;
   font-size: 20px;
 }
 
 #submit-button {
   background-color: #38D5DF;
   cursor: pointer;
-  width: 23.5%;
+  width: 25%;
   border: none;
   padding: 7px;
   color: white;
@@ -30,22 +39,23 @@
 }
 
 #content-container {
-  width: 1200px;
+  width: 77vw;
+  height: 32vw;
   margin: auto;
 }
 
 #video-container {
   display: inline-block;
-  width: fit-content;
-  height: fit-content;
+  width: 74%;
+  height: 100%;
   margin: auto;
 }
 
 #chat-panel {
   display: inline-block;
   vertical-align: top;
-  height: 511px;
-  width: 282px;
+  height: 100%;
+  width: 25%;
   border: 1px solid black;
 }
 
@@ -75,9 +85,10 @@ p.message-text {
 
 #message-input {
   width: 75%;
-  height: 85%;
+  height: 100%;
   font-size: 16px;
   border: none;
+  margin-left: 2%;
 }
 
 #message-input:focus-visible {
@@ -86,12 +97,12 @@ p.message-text {
 
 #send-button {
   width: 20%;
-  height: 70%;
+  height: 85%;
   background-color: #38D5DF;
   color: white;
   border: none;
-  font-size: 18px;
-  margin-top: 10px;
+  font-size: 1.5vw;
+  margin-top: 2%;
 }
 
 .modal {
