@@ -56,11 +56,12 @@ function onYouTubeIframeAPIReady() {
   var nicknameButton = document.getElementById('nickname-button');
   var nicknameInput = document.getElementById('nickname-input');
   var nicknameModal = document.getElementById('nickname-modal');
-  var errorMessage = document.getElementById('error-message');
+  var nicknameErrorMessage = document.getElementById('nickname-error-message');
 
   var sendMessage = document.getElementById('send-button');
   var messageInput = document.getElementById('message-input');
   var messageContainer = document.getElementById('message-container');
+  var msgErrorMessage = document.getElementById('msg-error-message');
 
   nicknameButton.addEventListener('click', onSetNickname);
   nicknameInput.addEventListener('keyup', (e) => {
@@ -78,7 +79,14 @@ function onYouTubeIframeAPIReady() {
   socket.on('messageReceived', onMessageReceived);
 
   function onSetNickname() {
+    var nicknameLengthLimit = 20;
     var inputtedNickname = nicknameInput.value;
+
+    if (inputtedNickname.length > nicknameLengthLimit) {
+      displayInputErrorMessage(nicknameInput, nicknameErrorMessage, "Please shorten your nickname to less than 20 characters")
+      return;
+    }
+
     socket.emit('setNickname', {nickname: inputtedNickname, bashId: bashId})
 
     //hasErrors: 1 - invalid username, 2 - username taken
@@ -88,27 +96,24 @@ function onYouTubeIframeAPIReady() {
         nickname = inputtedNickname;
       }
       else if (hasErrors == 1) {
-        showNicknameErrors("Please enter a valid nickname!");
+        displayInputErrorMessage(nicknameInput, nicknameErrorMessage, "Please enter a valid nickname! (Alphanumeric characters only!)")
       }
       else if (hasErrors == 2) {
-        showNicknameErrors("Nickname is already in use! Please enter a different one");
+        displayInputErrorMessage(nicknameInput, nicknameErrorMessage, "Nickname is already in use! Please enter a different one")
       }
     })
   }
 
-  function showNicknameErrors(message) {
-    nicknameInput.style.border = '2px solid red';
-    errorMessage.innerText = message;
-    errorMessage.style.height = '20px';
-    setTimeout(() => {
-      nicknameInput.style.border = '';
-      errorMessage.style.height = '0px';
-    }, 2000);
-  }
-
   function onSendMessage() {
     let message = messageInput.value;
+    let messageLengthLimit = 125;
+
     if (!message) return;
+
+    if (message.length > messageLengthLimit) {
+      displayInputErrorMessage(messageInput, msgErrorMessage, "You've passed the 125 char limit")
+      return;
+    }
 
     socket.emit('sendMessage', {message: message, bashId: bashId})
 
@@ -125,6 +130,16 @@ function onYouTubeIframeAPIReady() {
     messageInput.value = "";
     messageContainer.appendChild(messageElement);
     messageContainer.scrollTop = messageContainer.scrollHeight;
+  }
+
+  function displayInputErrorMessage(inputElement, errorMsgElement, message) {
+    inputElement.style.border = '2px solid red';
+    errorMsgElement.textContent = message;
+    errorMsgElement.style.height = '20px';
+    setTimeout(() => {
+      inputElement.style.border = '';
+      errorMsgElement.style.height = '0px';
+    }, 2000);
   }
 
   function onMessageReceived(data) {
@@ -239,11 +254,12 @@ function onPlayerReady() {
     }
   });
 
-  function onBashJoined(bash) {
+  function onBashJoined(bash, defaultNickname) {
     if (!bash) {
       console.log("Critical error occurred.")
       return;
     }
+    nickname = defaultNickname;
     localBash = bash;
     playerFlags.syncOnNextPlay = true;
     if (localBash.youtubeId && localBash.isPlaying) {
