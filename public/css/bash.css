@@ -70,7 +70,7 @@ p.message-text {
 }
 
 #message-input-area {
-  height: 9%;
+  height: 8%;
 }
 
 #message-input {
@@ -146,12 +146,12 @@ p.message-text {
   font-size: 20px;
 }
 
-#error-message {
+.slide-down-error-message {
   overflow: hidden;
   height: 0;
   transition: height 0.5s ease;
   font-size: 13px;
-  margin-top: 0;
+  margin-top: 10px;
   color: red;
 }
 

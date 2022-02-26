@@ -126,15 +126,28 @@ function validateYoutubeUrl(url) {
   return false;
 }
 
+function createRandomNickName(bash) {
+  const max = 1000000;  
+  var randomNickname = "guest" + Math.floor(Math.random() * max).toString();
+
+  // Make sure randomNickname is unique
+  while(bash.users[randomNickname]) {
+    randomNickname = "guest" + Math.floor(Math.random() * max).toString();
+  }
+
+  return randomNickname;
+}
+
 function registerOnSetNickname(socket) {
   socket.on('setNickname', (data) => {
     var rawNickname = data.nickname;
+    var nicknameLengthLimit = 20;
     var bash = activeBashes.get(data.bashId);
     let bashStatusProcessor = activeStatusProcessors.get(data.bashId);
     var alphaNumericChars = /^[a-z0-9]+$/i;
     var hasErrors = 0;
-    
-    if (!rawNickname || !rawNickname.match(alphaNumericChars)) {
+
+    if (!rawNickname || typeof(rawNickname) != "string" || !rawNickname.match(alphaNumericChars) || rawNickname.length > nicknameLengthLimit) {
       hasErrors = 1;
       console.log("Invalid username");
     }
@@ -143,6 +156,8 @@ function registerOnSetNickname(socket) {
       console.log("Username already exists")
     }
     else {
+      // removing default nickname before assigning user created nickname
+      bash.users[socket.data.nickname] = false;
       socket.data.nickname = rawNickname;
       bash.users[rawNickname] = true;
       hasErrors = 0;
@@ -157,9 +172,16 @@ function registerOnSendMessage(socket) {
   socket.on('sendMessage', (data) => {
     let bash = activeBashes.get(data.bashId)
     let message = data.message;
+    var messageLengthLimit = 125;
     let user = socket.data.nickname;
 
-    if (!message) {
+    if (!bash) {
+      console.log("bash doesn't exist");
+      return;
+    }
+
+    if (!message || typeof(message) != "string" || message.length > messageLengthLimit) {
+      console.log("Invalid message");
       return;
     }
 
@@ -215,13 +237,17 @@ function registerOnJoinBash(socket){
       return;
     }
 
+    var nickname = createRandomNickName(bash);
+    socket.data.nickname = nickname;
+    bash.users[nickname] = true;
+
     socket.join(bashId.toString());
     if (bash.isPlaying) {
       bash.seekTime += stopwatch.currentTime();
       stopwatch.reset();
       stopwatch.start();
     }
-    socket.emit('bashJoined', bash);
+    socket.emit('bashJoined', bash, nickname);
   });
 }
 
