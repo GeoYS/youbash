@@ -257,6 +257,7 @@ function registerOnSetUrl(socket){
 
     if (!validateYoutubeUrl(data.url)) {
       console.log("setUrl: invalid youtube URL");
+      socket.emit('setUrlError');
       return;
     }
 
@@ -266,6 +267,7 @@ function registerOnSetUrl(socket){
 
     if (!bash) {
       console.log("setUrl error");
+      socket.emit('setUrlError');
       return;
     }
 
