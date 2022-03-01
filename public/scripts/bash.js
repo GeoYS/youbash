@@ -63,6 +63,9 @@ function onYouTubeIframeAPIReady() {
   var messageContainer = document.getElementById('message-container');
   var msgErrorMessage = document.getElementById('msg-error-message');
 
+  var submitButtom = document.getElementById('submit-button');
+  var urlBar = document.getElementById('url-bar');
+
   nicknameButton.addEventListener('click', onSetNickname);
   nicknameInput.addEventListener('keyup', (e) => {
     if (e.key === "Enter") {
@@ -75,8 +78,15 @@ function onYouTubeIframeAPIReady() {
       onSendMessage();
     }
   });
+  submitButtom.addEventListener('click', onSubmitButtonClick);
+  urlBar.addEventListener('keyup', (e) => {
+    if (e.key === "Enter") {
+      onSubmitButtonClick();
+    }
+  });
 
   socket.on('messageReceived', onMessageReceived);
+  socket.on('statusUpdate', onStatusUpdate);
 
   function onSetNickname() {
     var nicknameLengthLimit = 20;
@@ -149,6 +159,51 @@ function onYouTubeIframeAPIReady() {
 
     messageContainer.appendChild(messageElement);
     messageContainer.scrollTop = messageContainer.scrollHeight;
+  }
+
+  function onStatusUpdate(statusData) {
+    let statusMessage = document.createElement("p");
+    let statusText = statusData.user;
+
+    statusMessage.classList.add('status-message');
+
+    switch(statusData.event) {
+      case "join":
+        statusText += " joined the bash.";
+        break;
+      case "leave":
+        statusText += " left the bash.";
+        break;
+      case "play":
+        statusText += " played the video.";
+        break;
+      case "pause":
+        statusText += " paused the video.";
+        break;
+      case "setUrl":
+        statusText += " changed the video.";
+        break;
+      case "seek":
+        statusText += " seeked the video to " + toTimestampString(statusData.data.seekTime) + ".";
+        break;
+      default:
+        break;
+    }
+
+    const statusTextElement = document.createTextNode(statusText);
+
+    statusMessage.appendChild(statusTextElement);
+
+    messageContainer.appendChild(statusMessage);
+    messageContainer.scrollTop = messageContainer.scrollHeight;
+  }
+
+  function onSubmitButtonClick() {
+    var url = urlBar.value;
+    socket.emit("setUrl", {
+      "bashId": bashId,
+      "url": url
+    });
   }
 })();
 
@@ -234,9 +289,6 @@ function onPlayerReady() {
     seekTime: 0,
     numUsers: 0,
   };
-  var submitButtom = document.getElementById('submit-button');
-  var urlBar = document.getElementById('url-bar');
-  var messageContainer = document.getElementById('message-container');
   
   socket.emit("joinBash", bashId);
   socket.on('bashJoined', onBashJoined);
@@ -244,14 +296,6 @@ function onPlayerReady() {
   socket.on('videoPlaying', onVideoPlaying);
   socket.on('videoPaused', onVideoPaused);
   socket.on('videoSeek', onVideoSeek);
-  socket.on('statusUpdate', onStatusUpdate);
-
-  submitButtom.addEventListener('click', onSubmitButtonClick);
-  urlBar.addEventListener('keyup', (e) => {
-    if (e.key === "Enter") {
-      onSubmitButtonClick();
-    }
-  });
 
   function onBashJoined(bash, defaultNickname) {
     if (!bash) {
@@ -295,51 +339,5 @@ function onPlayerReady() {
     localBash.isPlaying = bash.isPlaying;
     player.pauseVideo();
   }
-
-  function onStatusUpdate(statusData) {
-    let statusMessage = document.createElement("p");
-    let statusText = statusData.user;
-
-    statusMessage.classList.add('status-message');
-    
-    switch(statusData.event) {
-      case "join":
-        statusText += " joined the bash.";
-        break;
-      case "leave":
-        statusText += " left the bash.";
-        break;
-      case "play":
-        statusText += " played the video.";
-        break;
-      case "pause":
-        statusText += " paused the video.";
-        break;
-      case "setUrl":
-        statusText += " changed the video.";
-        break;
-      case "seek":
-        statusText += " seeked the video to " + toTimestampString(statusData.data.seekTime) + ".";
-        break;
-      default:
-        break;
-    }
-
-    const statusTextElement = document.createTextNode(statusText);
-
-    statusMessage.appendChild(statusTextElement);
-
-    messageContainer.appendChild(statusMessage);
-    messageContainer.scrollTop = messageContainer.scrollHeight;
-  }
-
-  function onSubmitButtonClick() {
-    var url = urlBar.value;
-    socket.emit("setUrl", {
-      "bashId": bashId,
-      "url": url
-    });
-  }
-
 }
 
