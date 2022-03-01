@@ -18,13 +18,45 @@ html, body {
   margin:auto;
   width: 77vw;
   padding-bottom: 10px;
+  display: flex;
+  column-gap: 0.5%;
+}
+
+#url-bar-wrapper {
+  display: flex;
+  border: 1px solid #CFD5DB;
+  border-radius: 5px;
+  background: #fafafa;
+  color: #6C757D;
+  cursor: text;
+  width: 74%;
+  box-sizing: border-box;
+  padding-left: 12px;
+  padding-right: 12px;
+  align-items: center;
+}
+
+#url-bar-wrapper:focus-within {
+  border: 1px solid #000;
+}
+
+#url-bar-wrapper>input {
+  outline: none;
+  border: none;
+  background: transparent;
 }
 
 #url-bar {
-  width: 74%;
-  height: 35px;
-  box-sizing: border-box;
   font-size: 20px;
+  width: 100%;
+  height: 35px;
+  padding: 0;
+}
+
+#url-error-message {
+  font-size: 20px;
+  margin: 0px;
+  padding-right: 5px;
 }
 
 #submit-button {

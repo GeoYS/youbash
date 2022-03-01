@@ -21,7 +21,10 @@
     <img src="/images/logo.png" id="logo" alt="YouBash">
 
     <div id="url-bar-container">
-      <input type="text" id="url-bar" placeholder="Enter a YouTube Video URL">
+      <label id="url-bar-wrapper">
+        <input type="text" id="url-bar" placeholder="Enter a YouTube Video URL">
+        <p id='url-error-message' class='slide-down-error-message'></p>
+      </label>
       <button id="submit-button">Go</button>
     </div>
 

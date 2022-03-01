@@ -270,12 +270,14 @@ function registerOnSetUrl(socket){
   socket.on('setUrl', (data) => {
     if (!validateYoutubeUrl(data.url)) {
       console.log("setUrl: invalid youtube URL");
+      socket.emit('setUrlError');
       return;
     }
 
     var bashId = sanitizeBashId(data.bashId, 'setUrl');
     var bash = getBashSecurelyForSocket(socket, bashId, 'setUrl');
     if (!bash) {
+      socket.emit('setUrlError');
       return;
     }
 
