@@ -64,7 +64,9 @@ function onYouTubeIframeAPIReady() {
   var msgErrorMessage = document.getElementById('msg-error-message');
 
   var submitButtom = document.getElementById('submit-button');
+  var urlBarWrapper = document.getElementById('url-bar-wrapper');
   var urlBar = document.getElementById('url-bar');
+  var urlErrorMessage = document.getElementById('url-error-message');
 
   nicknameButton.addEventListener('click', onSetNickname);
   nicknameInput.addEventListener('keyup', (e) => {
@@ -87,6 +89,8 @@ function onYouTubeIframeAPIReady() {
 
   socket.on('messageReceived', onMessageReceived);
   socket.on('statusUpdate', onStatusUpdate);
+
+  socket.on('setUrlError', onSetUrlError);
 
   function onSetNickname() {
     var nicknameLengthLimit = 20;
@@ -205,6 +209,10 @@ function onYouTubeIframeAPIReady() {
       "url": url
     });
   }
+  function onSetUrlError() {
+    displayInputErrorMessage(urlBarWrapper, urlErrorMessage, " ! ");
+  }
+
 })();
 
 function onPlayerReady() {
