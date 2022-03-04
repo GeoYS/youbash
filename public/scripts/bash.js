@@ -290,6 +290,8 @@ function onPlayerReady() {
   //==========================================
   //================ Bash Code ===============
   //==========================================
+  var urlBar = document.getElementById('url-bar');
+
   var localBash = {
     id: "",
     youtubeId: "",
@@ -322,6 +324,7 @@ function onPlayerReady() {
 
   function onVideoUpdated(youtubeId) {
     localBash.youtubeId = youtubeId;
+    urlBar.value = "youtube.com/watch?v=" + youtubeId;
     player.cueVideoById(youtubeId);
   }
 
