@@ -96,6 +96,17 @@ function createBash() {
   return bash.id;
 }
 
+function getBashSecurelyForSocket(socket, requestedBashId, eventName) {
+  for (let room of socket.rooms) {
+    let socketBashId = parseInt(room);
+    if (activeBashes.has(socketBashId) && socketBashId == requestedBashId) {
+      return activeBashes.get(socketBashId);
+    }
+  }
+  console.log(eventName + ": bash not found")
+  return false;
+}
+
 function sanitizeBashId(rawBashId, event) {
   var bashId = parseInt(rawBashId);
 
@@ -140,9 +151,16 @@ function createRandomNickName(bash) {
 
 function registerOnSetNickname(socket) {
   socket.on('setNickname', (data) => {
+
     var rawNickname = data.nickname;
     var nicknameLengthLimit = 20;
-    var bash = activeBashes.get(data.bashId);
+    var bashId = sanitizeBashId(data.bashId)
+    var bash = getBashSecurelyForSocket(socket, bashId, "setNickname");
+
+    if (!bash) {
+      return;
+    }
+
     let bashStatusProcessor = activeStatusProcessors.get(data.bashId);
     var alphaNumericChars = /^[a-z0-9]+$/i;
     var hasErrors = 0;
@@ -170,21 +188,20 @@ function registerOnSetNickname(socket) {
 
 function registerOnSendMessage(socket) {
   socket.on('sendMessage', (data) => {
-    let bash = activeBashes.get(data.bashId)
-    let message = data.message;
-    var messageLengthLimit = 125;
-    let user = socket.data.nickname;
-
+    let bashId = sanitizeBashId(data.bashId);
+    let bash = getBashSecurelyForSocket(socket, bashId, "sendMessage");
     if (!bash) {
-      console.log("bash doesn't exist");
       return;
     }
+    let message = data.message;
+    var messageLengthLimit = 125;
 
     if (!message || typeof(message) != "string" || message.length > messageLengthLimit) {
       console.log("Invalid message");
       return;
     }
 
+    let user = socket.data.nickname;
     socket.to(bash.id.toString()).emit("messageReceived", {message:message, user:user})
   })
 }
@@ -227,16 +244,14 @@ function registerOnCreateBash(socket) {
 
 function registerOnJoinBash(socket){
   socket.on('joinBash', (rawBashId) => {
+    console.log("join bash received");
     var bashId = sanitizeBashId(rawBashId, 'joinBash');
     var bash = activeBashes.get(bashId);
-    var stopwatch = activeStopWatches.get(bashId);
-    console.log("join bash received");
-
     if (!bash) {
-      console.log("join bash error");
       return;
     }
 
+    var stopwatch = activeStopWatches.get(bashId);
     var nickname = createRandomNickName(bash);
     socket.data.nickname = nickname;
     bash.users[nickname] = true;
@@ -253,22 +268,19 @@ function registerOnJoinBash(socket){
 
 function registerOnSetUrl(socket){
   socket.on('setUrl', (data) => {
-    var bashId = sanitizeBashId(data.bashId, 'setUrl');
-
     if (!validateYoutubeUrl(data.url)) {
       console.log("setUrl: invalid youtube URL");
       return;
     }
 
-    var bash = activeBashes.get(bashId);
-    var stopwatch = activeStopWatches.get(data.bashId);
-    var statusProcessor = activeStatusProcessors.get(bashId);
-
+    var bashId = sanitizeBashId(data.bashId, 'setUrl');
+    var bash = getBashSecurelyForSocket(socket, bashId, 'setUrl');
     if (!bash) {
-      console.log("setUrl error");
       return;
     }
 
+    var stopwatch = activeStopWatches.get(data.bashId);
+    var statusProcessor = activeStatusProcessors.get(bashId);
     var youtubeId = data.url.split("=")[1];
 
     console.log("setUrl received");
@@ -283,15 +295,14 @@ function registerOnSetUrl(socket){
 function registerOnVideoPlaying(socket){
   socket.on('playVideo', (data) => {
     var bashId = sanitizeBashId(data.bashId, 'playVideo');
-    var bash = activeBashes.get(bashId);
+    var bash = getBashSecurelyForSocket(socket, bashId, 'playVideo');
+    if (!bash) {
+      return;
+    }
+
     var stopwatch = activeStopWatches.get(bashId);
     var statusProcessor = activeStatusProcessors.get(bashId);
     var seekTime = sanitizeSeekTime(data.seekTime, 'playVideo');
-
-    if (!bash) {
-      console.log("playVideo: bash not found");
-      return;
-    }
 
     bash.isPlaying = true;
     bash.seekTime = seekTime;
@@ -303,18 +314,16 @@ function registerOnVideoPlaying(socket){
 
 function registerOnVideoSeeked(socket){
   socket.on('seekVideo', (data) => {
+    console.log("seek video received");
     var bashId = sanitizeBashId(data.bashId, 'seekVideo');
-    var bash = activeBashes.get(bashId);
+    var bash = getBashSecurelyForSocket(socket, bashId,'seekVideo');
+    if (!bash) {
+      return;
+    }
+
     var stopwatch = activeStopWatches.get(bashId);
     var statusProcessor = activeStatusProcessors.get(bashId);
     var seekTime = sanitizeSeekTime(data.seekTime, 'seekVideo');
-
-    console.log("seek video received");
-
-    if (!bash) {
-      console.log("seekVideo: bash not found");
-      return;
-    }
 
     bash.seekTime = seekTime;
     if (bash.isPlaying) {
@@ -329,14 +338,13 @@ function registerOnVideoSeeked(socket){
 function registerOnVideoPaused(socket){
   socket.on('pauseVideo', (rawBashId) => {
     var bashId = sanitizeBashId(rawBashId, 'pauseVideo');
-    var bash = activeBashes.get(bashId);
-    var stopwatch = activeStopWatches.get(bashId);
-    var statusProcessor = activeStatusProcessors.get(bashId);
-
+    var bash = getBashSecurelyForSocket(socket, bashId, 'pauseVideo');
     if (!bash) {
-      console.log("pauseVideo: bash not found");
       return;
     }
+
+    var stopwatch = activeStopWatches.get(bashId);
+    var statusProcessor = activeStatusProcessors.get(bashId);
 
     bash.isPlaying = false;
     bash.seekTime += stopwatch.currentTime();
@@ -349,8 +357,13 @@ function registerOnVideoPaused(socket){
 function registerOnSyncRequest(socket){
   socket.on('syncRequest', (rawBashId) => {
     var bashId = sanitizeBashId(rawBashId, 'syncRequest');
-    var bash = activeBashes.get(bashId);
+    var bash = getBashSecurelyForSocket(socket, bashId, 'syncRequest');
+    if (!bash) {
+      return;
+    }
+
     var stopwatch = activeStopWatches.get(bashId);
+
     bash.seekTime += stopwatch.currentTime();
     stopwatch.reset();
     stopwatch.start();
