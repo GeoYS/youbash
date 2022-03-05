@@ -103,7 +103,7 @@ function getBashSecurelyForSocket(socket, requestedBashId, eventName) {
       return activeBashes.get(socketBashId);
     }
   }
-  console.log(eventName + ": bash not found")
+  console.log(eventName + ": invalid bash for socket/bash doesn't exist")
   return false;
 }
 
