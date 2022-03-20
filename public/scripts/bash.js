@@ -320,6 +320,9 @@ function onPlayerReady() {
     } else {
       player.cueVideoById(localBash.youtubeId, localBash.seekTime);
     }
+    if (localBash.youtubeId) {
+      urlBar.value = "youtube.com/watch?v=" + localBash.youtubeId;
+    }
   }
 
   function onVideoUpdated(youtubeId) {
