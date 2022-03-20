@@ -99,7 +99,7 @@ html, body {
 
 p.status-message {
   font-style: italic;
-  margin-left: 5px;
+  margin: 10px 0px 10px 5px;
 }
 
 span.own-nickname {
@@ -107,8 +107,8 @@ span.own-nickname {
 }
 
 p.message-text {
-  margin-left: 5px;
   overflow-wrap: break-word;
+  margin: 10px 0px 10px 5px;
 }
 
 #message-input-area {
