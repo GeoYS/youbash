@@ -217,6 +217,9 @@ function onYouTubeIframeAPIReady() {
 
 function onPlayerReady() {
 
+  var lastSyncSystemTime = 0; // Used to detect if a seek occurred while paused
+  var lastLocalSeekTime = 0;
+
   // Higher priority flags are listed first
   var playerFlags = {
     syncOnNextPlay: false, // should set to true before first video play event
@@ -241,6 +244,9 @@ function onPlayerReady() {
     */
     switch(event.data) {
       case YT.PlayerState.PLAYING:
+        localBash.seekTime = player.getCurrentTime();
+        lastSyncSystemTime = Date.now();
+
         /*
         Handle edge case flags with priority.
         For flag priority, check the playerFlags declaration.
@@ -270,13 +276,20 @@ function onPlayerReady() {
         Handle normal logic.
         */
         if (!localBash.isPlaying) {
+          /* Play after being in a paused state (either mouse seek, or normal pause-play) */
+          let currentSeekTime = localBash.seekTime;
+          let skipSync = (Math.abs(lastLocalSeekTime - currentSeekTime) < 0.1);
+
           localBash.isPlaying = true;
-          socket.emit('playVideo', {'bashId': bashId, 'seekTime': player.getCurrentTime()});
+          socket.emit('playVideo', {'bashId': bashId, 'seekTime': player.getCurrentTime(), "skipSync": skipSync});
         } else {
+          /* Keyboard seek while video is playing */
           socket.emit('seekVideo', {'bashId': bashId, 'seekTime': player.getCurrentTime()});
         }
         break;
       case YT.PlayerState.PAUSED:
+        let timeSincePlaying = (Date.now() - lastSyncSystemTime) / 1000;
+        lastLocalSeekTime = timeSincePlaying + localBash.seekTime;
         if (localBash.isPlaying) {
           localBash.isPlaying = false;
           socket.emit('pauseVideo', bashId);
@@ -331,11 +344,12 @@ function onPlayerReady() {
     player.cueVideoById(youtubeId);
   }
 
-  function onVideoPlaying(bash) {
+  function onVideoPlaying(bash, skipSync) {
     localBash.isPlaying = bash.isPlaying;
-    localBash.seekTime = bash.seekTime;
     playerFlags.ignoreNextPlayingEvent = true;
-    player.seekTo(bash.seekTime);
+    if (!skipSync) {
+      player.seekTo(bash.seekTime);
+    }
     player.playVideo();
   }
 
