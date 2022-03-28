@@ -305,11 +305,12 @@ function registerOnVideoPlaying(socket){
     var stopwatch = activeStopWatches.get(bashId);
     var statusProcessor = activeStatusProcessors.get(bashId);
     var seekTime = sanitizeSeekTime(data.seekTime, 'playVideo');
+    var skipSync = (data.skipSync == true);
 
     bash.isPlaying = true;
     bash.seekTime = seekTime;
     stopwatch.start();
-    socket.to(bash.id.toString()).emit("videoPlaying", bash);
+    socket.to(bash.id.toString()).emit("videoPlaying", bash, skipSync);
     statusProcessor.process(socket, BashStatusEvents.play);
   });
 }
