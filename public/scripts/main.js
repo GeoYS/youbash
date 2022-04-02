@@ -11,6 +11,7 @@
   var joinBashButton = document.getElementById('join-button');
   var bashInput = document.getElementById('bash-id-input');
   var errorMessage = document.getElementById('error-message');
+  var onlineUserCount = document.getElementById('user-count');
 
   // Redirect from failed bash join
   if (failed) {
@@ -25,7 +26,12 @@
     }
   });
 
+  socket.on('onlineUserCount', onOnlineUserCount);
   socket.on('bashCreated', onBashCreated);
+
+  function onOnlineUserCount(count){
+    onlineUserCount.textContent = count;
+  }
 
   function onCreateBashClick(){
     socket.emit('createBash');
