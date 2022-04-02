@@ -32,6 +32,8 @@ app.get('/bash/:id', function(req , res){
 
 function onConnection(socket){
   console.log("connection started")
+  activeConnections++;
+  socket.emit("onlineUserCount", activeConnections);
   /*
   This field will limit each socket connection
   to only be able to create one bash.
@@ -63,6 +65,7 @@ server.listen(port, () => console.log(`app listening at http://localhost:${port}
 const activeBashes = new Map();
 const activeStopWatches = new Map();
 const activeStatusProcessors = new Map();
+var activeConnections = 0;
 
 function createBashId() {
   const max = 1000000;  
@@ -224,6 +227,7 @@ function registerOnDisconnecting(socket) {
         }
       }
     }
+    activeConnections--;
   });
 }
 
