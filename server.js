@@ -132,12 +132,10 @@ function sanitizeSeekTime(rawSeekTime, event) {
   return seekTime;
 }
 
-function validateYoutubeUrl(url) {
-  var p = /^(?:https?:\/\/)?(?:m\.|www\.)?(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))((\w|-){11})(?:\S+)?$/;
-  if(url.match(p)){
-      return url.match(p)[1];
-  }
-  return false;
+function getVideoIdFromUrl(url){
+  var regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
+  var match = url.match(regExp);
+  return (match&&match[7].length==11)? match[7] : false;
 }
 
 function createRandomNickName(bash) {
@@ -272,7 +270,9 @@ function registerOnJoinBash(socket){
 
 function registerOnSetUrl(socket){
   socket.on('setUrl', (data) => {
-    if (!validateYoutubeUrl(data.url)) {
+
+    var youtubeId = getVideoIdFromUrl(data.url);
+    if (!youtubeId) {
       console.log("setUrl: invalid youtube URL");
       socket.emit('setUrlError');
       return;
@@ -284,10 +284,8 @@ function registerOnSetUrl(socket){
       socket.emit('setUrlError');
       return;
     }
-
     var stopwatch = activeStopWatches.get(data.bashId);
     var statusProcessor = activeStatusProcessors.get(bashId);
-    var youtubeId = data.url.split("=")[1];
 
     console.log("setUrl received");
     bash.youtubeId = youtubeId;
