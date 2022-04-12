@@ -18,14 +18,17 @@
 
   <body>
 
-    <img src="/images/logo.png" id="logo" alt="YouBash">
-
-    <div id="url-bar-container">
-      <label id="url-bar-wrapper">
-        <input type="text" id="url-bar" placeholder="Enter a YouTube Video URL">
-        <p id='url-error-message' class='slide-down-error-message'></p>
-      </label>
-      <button id="submit-button">Go</button>
+    <div class="header">
+      <div class="header-item-container">
+        <img src="/images/logo.png" id="logo" alt="YouBash">
+        <label id="url-bar-wrapper">
+          <input type="text" id="url-bar" placeholder="Enter a YouTube Video URL">
+          <p id='url-error-message' class='slide-down-error-message'></p>
+        </label>
+        <button id="submit-button">Go</button>
+        <button id="profile-button"><span class='fa fa-user'></span></button>
+        <button id="settings-button"><span class='fa fa-solid fa-bars'></span></button>
+      </div>
     </div>
 
     <div id="content-container">
@@ -57,6 +60,7 @@
     
     <script src="/socket.io/socket.io.js"></script>
     <script src="/scripts/bash.js"></script>
+    <script src="https://use.fontawesome.com/releases/v5.8.1/js/all.js"></script>
   </body>
 
 </html>
